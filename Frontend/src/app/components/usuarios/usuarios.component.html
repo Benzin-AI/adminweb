@@ -1,0 +1,139 @@
+<div class="container mt-5">
+  <h2 class="mb-4 text-color">Lista de Usuarios</h2>
+
+  <!-- Mensaje de error -->
+  <div *ngIf="errorMessage" class="alert alert-danger">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Sección para editar o agregar usuario -->
+  <div *ngIf="selectedUser || isAddingUser">
+    <h3 class="text-color">
+      {{ selectedUser ? "Editar Usuario" : "Agregar Usuario" }}
+    </h3>
+    <form (ngSubmit)="onSaveUser()" #userForm="ngForm">
+      <div class="mb-3">
+        <label for="name" class="form-label text-color">Nombre</label>
+        <input
+          type="text"
+          id="name"
+          class="form-control"
+          [(ngModel)]="currentUser.name"
+          name="name"
+          #name="ngModel"
+          required
+        />
+        <!-- Mensaje de error para el campo Nombre -->
+        <div
+          *ngIf="name.invalid && (name.dirty || name.touched)"
+          class="text-danger"
+        >
+          Nombre es un campo requerido
+        </div>
+      </div>
+      <div class="mb-3">
+        <label for="email" class="form-label text-color">Email</label>
+        <input
+          type="email"
+          id="email"
+          class="form-control"
+          [(ngModel)]="currentUser.email"
+          name="email"
+          #email="ngModel"
+          [readonly]="selectedUser ? true : null"
+          [ngClass]="{ 'bg-light': selectedUser }"
+          required
+        />
+        <!-- Mensaje de error para el campo Email -->
+        <div
+          *ngIf="email.invalid && (email.dirty || email.touched)"
+          class="text-danger"
+        >
+          Email es un campo requerido
+        </div>
+      </div>
+      <div class="mb-3">
+        <label for="password" class="form-label text-color">Contraseña</label>
+        <input
+          type="password"
+          id="password"
+          class="form-control"
+          [(ngModel)]="currentUser.password"
+          name="password"
+          #password="ngModel"
+          required
+        />
+        <!-- Mensaje de error para el campo Contraseña -->
+        <div
+          *ngIf="password.invalid && (password.dirty || password.touched)"
+          class="text-danger"
+        >
+          Contraseña es un campo requerido
+        </div>
+      </div>
+      <div class="mb-3">
+        <label for="roles" class="form-label text-color">Roles</label>
+        <select
+          id="roles"
+          class="form-control"
+          [(ngModel)]="currentUser.roles"
+          name="roles"
+          #roles="ngModel"
+          multiple
+          required
+        >
+          <option value="vendedor">vendedor</option>
+          <option value="admin">admin</option>
+        </select>
+        <!-- Mensaje de error para el campo Roles -->
+        <div
+          *ngIf="roles.invalid && (roles.dirty || roles.touched)"
+          class="text-danger"
+        >
+          Debe seleccionar al menos un rol
+        </div>
+      </div>
+      <div class="mb-3">
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="userForm.invalid"
+        >
+          {{ selectedUser ? "Actualizar" : "Agregar" }}
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="onCancel()">
+          Cancelar
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Lista de usuarios -->
+  <ul class="list-group mt-4">
+    <li
+      *ngFor="let user of users"
+      class="list-group-item list-group-item-action"
+    >
+      <div class="d-flex w-100 justify-content-between align-items-center">
+        <div>
+          <h5 class="mb-1">{{ user.name }}</h5>
+          <small>{{ user.email }}</small>
+        </div>
+        <div class="ms-auto">
+          <button class="btn btn-warning btn-sm me-2" (click)="editUser(user)">
+            Editar
+          </button>
+          <button class="btn btn-danger btn-sm" (click)="deleteUser(user._id)">
+            Eliminar
+          </button>
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>
+
+<div class="text-center mt-4" *ngIf="!selectedUser && !isAddingUser">
+  <button class="btn btn-success" (click)="startAddingUser()">
+    Agregar Nuevo Usuario
+  </button>
+</div>

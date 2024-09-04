@@ -1,0 +1,103 @@
+<div class="container mt-5">
+  <h2 class="mb-4 text-color">Lista de Productos</h2>
+
+  <!-- Sección para editar o agregar producto -->
+  <div *ngIf="selectedProduct && !showDetails">
+    <h3 class="text-color">
+      {{ selectedProduct._id ? "Editar Producto" : "Agregar Producto" }}
+    </h3>
+    <form (ngSubmit)="onSaveProduct()" #productForm="ngForm">
+      <div class="mb-3">
+        <label for="name" class="form-label text-color">Nombre</label>
+        <input
+          type="text"
+          id="name"
+          class="form-control"
+          [(ngModel)]="selectedProduct.name"
+          name="name"
+          #name="ngModel"
+          required
+        />
+        <!-- Mensaje de error para el campo Nombre -->
+        <div *ngIf="name.invalid && (name.dirty || name.touched)" class="text-danger">
+          Nombre es un campo requerido
+        </div>
+      </div>
+      <div class="mb-3">
+        <label for="price" class="form-label text-color">Precio</label>
+        <input
+          type="number"
+          id="price"
+          class="form-control"
+          [(ngModel)]="selectedProduct.price"
+          name="price"
+          #price="ngModel"
+          required
+        />
+        <!-- Mensaje de error para el campo Precio -->
+        <div *ngIf="price.invalid && (price.dirty || price.touched)" class="text-danger">
+          Precio es un campo requerido
+        </div>
+      </div>
+      <div class="mb-3">
+        <label for="description" class="form-label text-color">Descripción</label>
+        <input
+          type="text"
+          id="description"
+          class="form-control"
+          [(ngModel)]="selectedProduct.description"
+          name="description"
+        />
+      </div>
+      <button type="submit" class="btn btn-primary" [disabled]="productForm.invalid">
+        {{ selectedProduct._id ? "Actualizar" : "Agregar" }}
+      </button>
+      <button type="button" class="btn btn-secondary ms-2" (click)="cancelEdit()">
+        Cancelar
+      </button>
+    </form>
+  </div>
+
+  <!-- Lista de productos -->
+  <ul class="list-group mt-4">
+    <li
+      *ngFor="let product of products"
+      class="list-group-item list-group-item-action"
+    >
+      <div class="d-flex w-100 justify-content-between align-items-center">
+        <div>
+          <h5 class="mb-1">{{ product.name }}</h5>
+          <small>{{ product.price | currency: 'USD':'symbol' }}</small>
+        </div>
+        <!-- Contenedor para alinear los botones a la derecha -->
+        <div class="ms-auto">
+          <button class="btn btn-info btn-sm me-2" (click)="showProductDetails(product)" [disabled]="showDetails">
+            Detalles
+          </button>
+          <button class="btn btn-warning btn-sm me-2" (click)="editProduct(product)" [disabled]="showDetails">
+            Editar
+          </button>
+          <button class="btn btn-danger btn-sm" (click)="deleteProduct(product._id)" [disabled]="showDetails">
+            Eliminar
+          </button>
+        </div>
+      </div>
+    </li>
+  </ul>
+
+  <!-- Botón para agregar nuevo producto -->
+  <div class="text-center mt-4">
+    <button class="btn btn-success" (click)="addNewProduct()" [disabled]="showDetails">
+      Agregar Nuevo Producto
+    </button>
+  </div>
+
+  <!-- Sección para mostrar detalles del producto -->
+  <div *ngIf="showDetails" class="mt-4">
+    <h4 class="text-color">Detalles del Producto</h4>
+    <p class="text-color"><strong>Nombre:</strong> {{ selectedProduct.name }}</p>
+    <p class="text-color"><strong>Precio:</strong> {{ selectedProduct.price | currency: 'USD':'symbol' }}</p>
+    <p class="text-color"><strong>Descripción:</strong> {{ selectedProduct.description }}</p>
+    <button class="btn btn-secondary" (click)="closeDetails()">Cerrar</button>
+  </div>
+</div>
