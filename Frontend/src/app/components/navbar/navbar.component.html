@@ -10,7 +10,7 @@
         <a class="nav-link" href="/usuarios">Usuarios</a>
       </div>
       <div class="d-flex ms-auto align-items-center">
-        <span class="me-3" *ngIf="userEmail">Bienvenido, {{ userEmail }}</span>
+        <span class="me-3" *ngIf="userEmail, userRole">Bienvenido, {{ userEmail }} ({{userRole}})</span>
         <button class="btn btn-outline-danger" (click)="logout()">Cerrar sesión</button>
       </div>
     </div>

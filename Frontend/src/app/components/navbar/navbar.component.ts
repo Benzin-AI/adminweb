@@ -14,6 +14,7 @@ import { NavbarService } from '../../services/navbar.service';
 })
 export class NavbarComponent implements OnInit {
   userEmail: string | null = null;
+  userRole: string | null = null;
 
   constructor(
     private authService: AuthService,
@@ -23,6 +24,8 @@ export class NavbarComponent implements OnInit {
 
   ngOnInit(): void {
     this.userEmail = this.authService.getCurrentUser()?.email || null;
+    this.userRole = this.authService.getUserRole() || null;
+
   }
 
   logout(): void {

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { UserService } from '../../services/user.service';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm, NgModel } from '@angular/forms';
 
 @Component({
   selector: 'app-user-list',
@@ -37,7 +37,12 @@ export class UsersComponent implements OnInit {
 
   startAddingUser(): void {
     this.selectedUser = null;
-    this.currentUser = { roles: [] };
+    this.currentUser = {
+      name: '',
+      email: '',
+      password: '',
+      roles: ['vendedor'] // Seleccionar por defecto el rol "vendedor"
+    };
     this.isAddingUser = true;
   }
 
@@ -47,14 +52,21 @@ export class UsersComponent implements OnInit {
       name: user.name,
       email: user.email,
       password: '',
-      roles: user.roles
+      roles: user.roles.map((role: any) => role.name) || [] // Convertir objetos a strings si es necesario
     };
     this.isAddingUser = false;
   }
-
+  
   onSaveUser(): void {
     if (!this.currentUser.name || !this.currentUser.email || !this.currentUser.password || this.currentUser.roles.length === 0) {
       this.errorMessage = 'Todos los campos (Nombre, Email, Contraseña y Roles) son requeridos';
+      return;
+    }
+
+    // Validar formato del correo electrónico
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(this.currentUser.email)) {
+      this.errorMessage = 'El formato del email no es válido';
       return;
     }
 
@@ -74,7 +86,7 @@ export class UsersComponent implements OnInit {
         },
         (error) => {
           console.error('Error al actualizar el usuario', error);
-          this.errorMessage = 'Error al actualizar el usuario';
+          this.errorMessage = 'Ese mail ya esta en uso';
         }
       );
     } else {
@@ -86,11 +98,10 @@ export class UsersComponent implements OnInit {
           this.isAddingUser = false;
         },
         (error) => {
-          console.error('Error al agregar el usuario', error);
           if (error.status === 403) {
             this.errorMessage = 'No tienes permisos para agregar usuarios.';
           } else {
-            this.errorMessage = 'Error al agregar el usuario';
+            this.errorMessage = 'Ese mail ya esta en uso';
           }
         }
       );
@@ -112,7 +123,6 @@ export class UsersComponent implements OnInit {
           this.currentUser = { roles: [] };
         },
         (error) => {
-          console.error('Error al eliminar el usuario', error);
           this.errorMessage = 'Error al eliminar el usuario';
         }
       );

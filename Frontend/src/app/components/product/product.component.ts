@@ -54,6 +54,17 @@ export class ProductsComponent implements OnInit {
       return;
     }
 
+    // Convertir el precio a un número entero
+    const price = parseInt(this.selectedProduct.price, 10);
+
+    // Validar que el precio sea un número entero positivo
+    if (isNaN(price) || price < 0) {
+      alert('El precio debe ser un número entero positivo');
+      return;
+    }
+
+    this.selectedProduct.price = price; // Actualizar el precio en el producto
+
     if (this.selectedProduct._id) {
       // Actualizar producto existente
       this.productService.updateProduct(this.selectedProduct._id, this.selectedProduct).subscribe(
