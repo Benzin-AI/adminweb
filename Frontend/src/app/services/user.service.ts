@@ -21,13 +21,6 @@ export class UserService {
     const headers = this.getHeaders();
     return this.http.get(this.apiUrl, { headers });
   }
-
-  // Método para obtener un usuario por ID
-  getUserById(id: string): Observable<any> {
-    const headers = this.getHeaders();
-    return this.http.get(`${this.apiUrl}/${id}`, { headers });
-  }
-
   // Método para crear un nuevo usuario
   createUser(user: any): Observable<any> {
     const headers = this.getHeaders();
@@ -44,11 +37,5 @@ export class UserService {
   deleteUser(id: string): Observable<any> {
     const headers = this.getHeaders();
     return this.http.delete(`${this.apiUrl}/${id}`, { headers });
-  }
-
-  // Método para obtener el usuario actual
-  getCurrentUser(): Observable<any> {
-    const headers = this.getHeaders();
-    return this.http.get(`${this.apiUrl}/current`, { headers });
   }
 }

@@ -12,85 +12,33 @@
       {{ selectedUser ? "Editar Usuario" : "Agregar Usuario" }}
     </h3>
     <form (ngSubmit)="onSaveUser()" #userForm="ngForm">
+
       <div class="mb-3">
         <label for="name" class="form-label text-color">Nombre</label>
-        <input
-          type="text"
-          id="name"
-          class="form-control"
-          [(ngModel)]="currentUser.name"
-          name="name"
-          #name="ngModel"
-          required
-        />
-        <!-- Mensaje de error para el campo Nombre -->
-        <div
-          *ngIf="name.invalid && (name.dirty || name.touched)"
-          class="text-danger"
-        >
-          Nombre es un campo requerido
-        </div>
+        <input type="text" id="name" class="form-control" [(ngModel)]="currentUser.name" name="name" #name="ngModel" required/>
       </div>
+
       <div class="mb-3">
         <label for="email" class="form-label text-color">Email</label>
-        <input
-          type="email"
-          id="email"
-          class="form-control"
-          [(ngModel)]="currentUser.email"
-          name="email"
-          #email="ngModel"
-          required
-          email
-        />
-        <!-- Mensaje de error para el campo Email -->
-        <div
-          *ngIf="email.invalid && (email.dirty || email.touched)"
-          class="text-danger"
-        >
-          Email es un campo requerido
-        </div>
+        <input type="email" id="email" class="form-control" [(ngModel)]="currentUser.email" name="email" #email="ngModel" required email/>
       </div>
+
       <div class="mb-3">
         <label for="password" class="form-label text-color">Contraseña</label>
-        <input
-          type="password"
-          id="password"
-          class="form-control"
-          [(ngModel)]="currentUser.password"
-          name="password"
-          #password="ngModel"
-          required
-        />
-        <!-- Mensaje de error para el campo Contraseña -->
-        <div
-          *ngIf="password.invalid && (password.dirty || password.touched)"
-          class="text-danger"
-        >
-          Contraseña es un campo requerido
-        </div>
+        <input type="password" id="password" class="form-control" [(ngModel)]="currentUser.password" name="password" #password="ngModel"/>
       </div>
+
       <div class="mb-3">
         <label for="roles" class="form-label text-color">Roles</label>
-        <select
-          id="roles"
-          class="form-control"
-          [(ngModel)]="currentUser.roles"
-          name="roles"
-          #roles="ngModel"
-          multiple
-          required
-        >
+        <select id="roles" class="form-control" [(ngModel)]="currentUser.roles" name="roles" #roles="ngModel" multiple required size="2">
           <option value="vendedor" [selected]="isAddingUser && !currentUser.roles.length">vendedor</option>
           <option value="admin">admin</option>
         </select>
       </div>
 
+
       <div class="mb-3">
-        <button
-          type="submit"
-          class="btn btn-primary"
-        >
+        <button type="submit" class="btn btn-primary">
           {{ selectedUser ? "Actualizar" : "Agregar" }}
         </button>
         <button type="button" class="btn btn-secondary" (click)="onCancel()">
@@ -102,10 +50,7 @@
 
   <!-- Lista de usuarios -->
 <ul class="list-group mt-4">
-  <li
-    *ngFor="let user of users"
-    class="list-group-item list-group-item-action"
-  >
+  <li *ngFor="let user of users" class="list-group-item list-group-item-action">
     <div class="d-flex w-100 justify-content-between align-items-center">
       <div>
         <h5 class="mb-1">{{ user.name }}</h5>

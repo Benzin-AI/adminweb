@@ -18,13 +18,6 @@ export class ProductService {
     return this.http.get(this.apiUrl, { headers });
   }
 
-  // Método para obtener un producto por ID
-  getProductById(id: string): Observable<any> {
-    const token = localStorage.getItem('token');
-    const headers = new HttpHeaders().set('x-access-token', token ? token : '');
-    return this.http.get(`${this.apiUrl}/${id}`, { headers });
-  }
-
   // Método para crear un nuevo producto
   createProduct(product: any): Observable<any> {
     const token = localStorage.getItem('token');

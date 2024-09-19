@@ -45,6 +45,11 @@ export class AuthService {
     localStorage.removeItem(this.currentUserKey);
   }
 
+  getUsersList(): any[] {
+    const usersJson = localStorage.getItem(this.usersKey);
+    return usersJson ? JSON.parse(usersJson) : [];
+  }
+  
   setCurrentUser(user: any): void {
     let users = this.getUsersList();
     const existingUserIndex = users.findIndex(u => u.email === user.email);
@@ -67,10 +72,6 @@ export class AuthService {
     return user ? user.role : null;
   }
 
-  getUsersList(): any[] {
-    const usersJson = localStorage.getItem(this.usersKey);
-    return usersJson ? JSON.parse(usersJson) : [];
-  }
 
   getUserByEmail(email: string): any | null {
     const users = this.getUsersList();

@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { UserService } from '../../services/user.service';
 import { CommonModule } from '@angular/common';
-import { FormsModule, NgForm, NgModel } from '@angular/forms';
+import { FormsModule} from '@angular/forms';
 
 @Component({
   selector: 'app-user-list',
@@ -15,7 +15,8 @@ export class UsersComponent implements OnInit {
   selectedUser: any = null;
   currentUser: any = { roles: [] };
   isAddingUser: boolean = false;
-  errorMessage: string = '';
+  errorMessage: string | null = null;
+  private errorTimer: any;
 
   constructor(private userService: UserService) { }
 
@@ -51,26 +52,42 @@ export class UsersComponent implements OnInit {
     this.currentUser = {
       name: user.name,
       email: user.email,
-      password: '',
-      roles: user.roles.map((role: any) => role.name) || [] // Convertir objetos a strings si es necesario
+      password:'',
+      roles: user.roles.map((role: any) => role.name) || []
     };
     this.isAddingUser = false;
   }
-  
+
   onSaveUser(): void {
-    if (!this.currentUser.name || !this.currentUser.email || !this.currentUser.password || this.currentUser.roles.length === 0) {
-      this.errorMessage = 'Todos los campos (Nombre, Email, Contraseña y Roles) son requeridos';
+    // Validar campos requeridos
+    if (!this.currentUser.name) {
+      this.showErrorMessage('El nombre es requerido');
+      return;
+    }
+
+    if (!this.currentUser.email) {
+      this.showErrorMessage('El email es requerido');
       return;
     }
 
     // Validar formato del correo electrónico
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailPattern.test(this.currentUser.email)) {
-      this.errorMessage = 'El formato del email no es válido';
+      this.showErrorMessage('El formato del email no es válido');
       return;
     }
 
-    this.errorMessage = ''; // Limpiar mensajes de error previos
+    // Si estamos editando un usuario y la contraseña está vacía, la quitamos del objeto para que no se actualice
+    if (this.selectedUser && !this.currentUser.password) {
+      delete this.currentUser.password;
+    } else if (!this.currentUser.password) {
+      // Si estamos creando un usuario y la contraseña está vacía, mostramos un mensaje de error
+      this.showErrorMessage('La contraseña es requerida');
+      return;
+    }
+
+    // Limpiar mensaje de error en caso de éxito
+    this.errorMessage = '';
 
     if (this.selectedUser) {
       // Actualizar usuario existente
@@ -86,7 +103,7 @@ export class UsersComponent implements OnInit {
         },
         (error) => {
           console.error('Error al actualizar el usuario', error);
-          this.errorMessage = 'Ese mail ya esta en uso';
+          this.showErrorMessage(error.status === 403 ? 'No tienes permisos para actualizar el usuario.' : 'Debes seleccionar un rol');
         }
       );
     } else {
@@ -99,9 +116,9 @@ export class UsersComponent implements OnInit {
         },
         (error) => {
           if (error.status === 403) {
-            this.errorMessage = 'No tienes permisos para agregar usuarios.';
+            this.showErrorMessage('No tienes permisos para agregar usuarios.');
           } else {
-            this.errorMessage = 'Ese mail ya esta en uso';
+            this.showErrorMessage('Ese email ya está en uso');
           }
         }
       );
@@ -127,5 +144,16 @@ export class UsersComponent implements OnInit {
         }
       );
     }
+  }
+  private showErrorMessage(message: string): void {
+    this.errorMessage = message;
+    // Limpiar el temporizador anterior, si existe
+    if (this.errorTimer) {
+      clearTimeout(this.errorTimer);
+    }
+    // Temporizador para que desaparezca el mensaje de error despues de x tiempo
+    this.errorTimer = setTimeout(() => {
+      this.errorMessage = null;
+    }, 3000);
   }
 }

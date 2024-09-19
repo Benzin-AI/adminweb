@@ -10,3 +10,40 @@
   color: #192229;
 }
 
+#productCarousel {
+  position: relative;
+  margin-bottom: 5rem; // Espacio debajo del carrusel
+
+  .carousel-inner {
+    padding-bottom: 3rem; // Espacio para los controles del carrusel
+  }
+
+  .carousel-control-prev,
+  .carousel-control-next {
+    position: absolute; // Posición absoluta para posicionar respecto al contenedor
+    top: 95%; // para llevar los botones debajo del carrusel
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center; // Centra el ícono horizontalmente dentro del botón
+    align-items: center; // Centra el ícono verticalmente dentro del botón
+    background-color: rgba(0, 0, 255, 0.5); // Fondo semi-transparente para mejor visibilidad
+    border-radius: 50%;
+    color: #192229;
+    transform: translateY(-50%); // Centra verticalmente considerando el tamaño del botón
+  }
+
+  .carousel-control-prev {
+    left: calc(50% - 50px - 5rem); // Coloca el botón izquierdo a la izquierda del centro, separando ambos botones por 5 rem
+  }
+
+  .carousel-control-next {
+    left: calc(50% + 5rem); // Coloca el botón derecho a la derecha del centro, separando ambos botones por 5 rem
+  }
+
+  .carousel-control-prev-icon,
+  .carousel-control-next-icon {
+    width: 20px; // Tamaño del ícono
+    height: 20px; // Tamaño del ícono
+  }
+}

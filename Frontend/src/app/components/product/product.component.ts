@@ -14,8 +14,11 @@ import { FormsModule } from '@angular/forms';
 })
 export class ProductsComponent implements OnInit {
   products: any[] = [];
+  filteredProducts: any[] = [];
+  chunkedProducts: any[][] = [];
   selectedProduct: any = null;
   showDetails = false;
+  searchTerm: string = '';
 
   constructor(private productService: ProductService) { }
 
@@ -27,101 +30,107 @@ export class ProductsComponent implements OnInit {
     this.productService.getProducts().pipe(
       tap((data) => {
         this.products = data;
+        this.filteredProducts = data;
+        this.chunkProducts(); // Dividir productos en chunks
       }),
       catchError((error) => {
         console.error('Error al cargar los productos', error);
+        if (error.status === 401) {
+          console.log('Error de autenticación. Redirigir al login o mostrar mensaje.');
+        }
         return of([]);
       })
     ).subscribe();
   }
 
+  chunkProducts(): void {
+    const chunkSize = 5;
+    this.chunkedProducts = [];
+    for (let i = 0; i < this.filteredProducts.length; i += chunkSize) {
+      this.chunkedProducts.push(this.filteredProducts.slice(i, i + chunkSize));
+    }
+  }
+
+  searchProducts(): void {
+    if (!this.searchTerm) {
+      this.filteredProducts = this.products;
+    } else {
+      this.filteredProducts = this.products.filter(product =>
+        product.name.toLowerCase().includes(this.searchTerm.toLowerCase())
+      );
+    }
+    this.chunkProducts(); // Actualizar chunks al buscar
+  }
+
   editProduct(product: any): void {
     if (!this.showDetails) {
-      this.selectedProduct = { ...product }; // Clonar el producto seleccionado para edición
+      this.selectedProduct = { ...product };
     }
   }
 
   addNewProduct(): void {
     if (!this.showDetails) {
-      this.selectedProduct = { name: '', price: 0, description: '' }; // Inicializar un nuevo producto vacío
+      this.selectedProduct = { name: '', price: '', description: '' };
     }
   }
 
   onSaveProduct(): void {
-    if (!this.selectedProduct.name || !this.selectedProduct.price) {
-      // Mostrar alerta si los campos requeridos están vacíos
+    if (!this.selectedProduct.name && !this.selectedProduct.price) {
       alert('Nombre y precio son campos requeridos');
       return;
     }
+    if (!this.selectedProduct.price) {
+      alert('Precio es un campo requerido');
+      return;
+    }
+    if (!this.selectedProduct.name) {
+      alert('Nombre es un campo requerido');
+      return;
+    }
 
-    // Convertir el precio a un número entero
     const price = parseInt(this.selectedProduct.price, 10);
 
-    // Validar que el precio sea un número entero positivo
     if (isNaN(price) || price < 0) {
       alert('El precio debe ser un número entero positivo');
       return;
     }
 
-    this.selectedProduct.price = price; // Actualizar el precio en el producto
+    this.selectedProduct.price = price;
 
     if (this.selectedProduct._id) {
-      // Actualizar producto existente
-      this.productService.updateProduct(this.selectedProduct._id, this.selectedProduct).subscribe(
-        (updatedProduct) => {
-          const index = this.products.findIndex(product => product._id === updatedProduct._id);
-          if (index > -1) {
-            this.products[index] = updatedProduct;
-          }
-          this.selectedProduct = null; // Limpiar la selección
-          this.showDetails = false; // Ocultar detalles después de la edición
-        },
-        (error) => {
-          console.error('Error al actualizar el producto', error);
-        }
-      );
+      this.productService.updateProduct(this.selectedProduct._id, this.selectedProduct).subscribe(() => {
+        this.loadProducts();
+        this.selectedProduct = null;
+      });
     } else {
-      // Agregar nuevo producto
-      this.productService.createProduct(this.selectedProduct).subscribe(
-        (newProduct) => {
-          this.products.push(newProduct); // Añadir el nuevo producto a la lista
-          this.selectedProduct = null; // Limpiar la selección
-          this.showDetails = false; // Ocultar detalles después de agregar el producto
-        },
-        (error) => {
-          console.error('Error al agregar el producto', error);
-        }
-      );
+      this.productService.createProduct(this.selectedProduct).subscribe(() => {
+        this.loadProducts();
+        this.selectedProduct = null;
+      });
     }
   }
 
-  cancelEdit(): void {
-    this.selectedProduct = null; // Limpiar la selección y cerrar el formulario de edición
-    this.showDetails = false; // Ocultar detalles cuando se cancela la edición
-  }
-
-  deleteProduct(id: string): void {
-    if (confirm('¿Estás seguro de que deseas eliminar este producto?')) {
-      this.productService.deleteProduct(id).subscribe(
-        () => {
-          this.products = this.products.filter(product => product._id !== id); // Actualizar la lista eliminando el producto
-          this.selectedProduct = null; // Limpiar la selección
-          this.showDetails = false; // Ocultar detalles después de eliminar un producto
-        },
-        (error) => {
-          console.error('Error al eliminar el producto', error);
-        }
-      );
+  deleteProduct(productId: any): void {
+    if (confirm('¿Estás seguro de que quieres eliminar este producto?')) {
+      this.productService.deleteProduct(productId).subscribe(() => {
+        this.loadProducts();
+      });
     }
   }
 
   showProductDetails(product: any): void {
-    this.selectedProduct = product; // Asignar el producto seleccionado
-    this.showDetails = true; // Mostrar detalles
+    if (!this.selectedProduct || this.selectedProduct._id !== product._id) {
+      this.selectedProduct = product;
+      this.showDetails = true;
+    }
   }
 
   closeDetails(): void {
-    this.showDetails = false; // Ocultar detalles
-    this.selectedProduct = null; // Limpiar el producto seleccionado
+    this.showDetails = false;
+    this.selectedProduct = null;
+  }
+
+  cancelEdit(): void {
+    this.selectedProduct = null;
   }
 }
