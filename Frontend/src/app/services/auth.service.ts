@@ -49,7 +49,7 @@ export class AuthService {
     const usersJson = localStorage.getItem(this.usersKey);
     return usersJson ? JSON.parse(usersJson) : [];
   }
-  
+
   setCurrentUser(user: any): void {
     let users = this.getUsersList();
     const existingUserIndex = users.findIndex(u => u.email === user.email);
@@ -70,12 +70,5 @@ export class AuthService {
   getUserRole(): string | null {
     const user = this.getCurrentUser();
     return user ? user.role : null;
-  }
-
-
-  getUserByEmail(email: string): any | null {
-    const users = this.getUsersList();
-    console.log(this.getUserByEmail)
-    return users.find(user => user.email === email) || null;
   }
 }
