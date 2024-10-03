@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { UserService } from '../../services/user.service';
 import { CommonModule } from '@angular/common';
-import { FormsModule} from '@angular/forms';
+import { FormsModule } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-user-list',
@@ -24,16 +25,14 @@ export class UsersComponent implements OnInit {
     this.loadUsers();
   }
 
-  loadUsers(): void {
-    this.userService.getUsers().subscribe(
-      (data) => {
-        this.users = data;
-      },
-      (error) => {
-        console.error('Error al cargar los usuarios', error);
-        this.errorMessage = 'Error al cargar los usuarios';
-      }
-    );
+  async loadUsers(): Promise<void> {
+    try {
+      const data = await firstValueFrom(this.userService.getUsers());
+      this.users = data;
+    } catch (error: unknown) {
+      console.error('Error al cargar los usuarios', error);
+      this.errorMessage = 'Error al cargar los usuarios';
+    }
   }
 
   startAddingUser(): void {
@@ -52,13 +51,13 @@ export class UsersComponent implements OnInit {
     this.currentUser = {
       name: user.name,
       email: user.email,
-      password:'',
+      password: '',
       roles: user.roles.map((role: any) => role.name) || []
     };
     this.isAddingUser = false;
   }
 
-  onSaveUser(): void {
+  async onSaveUser(): Promise<void> {
     // Validar campos requeridos
     if (!this.currentUser.name) {
       this.showErrorMessage('El nombre es requerido');
@@ -81,47 +80,33 @@ export class UsersComponent implements OnInit {
     if (this.selectedUser && !this.currentUser.password) {
       delete this.currentUser.password;
     } else if (!this.currentUser.password) {
-      // Si estamos creando un usuario y la contraseña está vacía, mostramos un mensaje de error
       this.showErrorMessage('La contraseña es requerida');
       return;
     }
 
-    // Limpiar mensaje de error en caso de éxito
-    this.errorMessage = '';
-
-    if (this.selectedUser) {
-      // Actualizar usuario existente
-      this.userService.updateUser(this.selectedUser._id, this.currentUser).subscribe(
-        (updatedUser) => {
-          const index = this.users.findIndex(user => user._id === updatedUser._id);
-          if (index > -1) {
-            this.users[index] = updatedUser;
-          }
-          this.selectedUser = null;
-          this.currentUser = { roles: [] };
-          this.isAddingUser = false;
-        },
-        (error) => {
-          console.error('Error al actualizar el usuario', error);
-          this.showErrorMessage(error.status === 403 ? 'No tienes permisos para actualizar el usuario.' : 'Debes seleccionar un rol');
+    try {
+      if (this.selectedUser) {
+        // Actualizar usuario existente
+        const updatedUser = await firstValueFrom(this.userService.updateUser(this.selectedUser._id, this.currentUser));
+        const index = this.users.findIndex(user => user._id === updatedUser._id);
+        if (index > -1) {
+          this.users[index] = updatedUser;
         }
-      );
-    } else {
-      // Crear nuevo usuario
-      this.userService.createUser(this.currentUser).subscribe(
-        (createdUser) => {
-          this.users.push(createdUser);
-          this.currentUser = { roles: [] };
-          this.isAddingUser = false;
-        },
-        (error) => {
-          if (error.status === 403) {
-            this.showErrorMessage('No tienes permisos para agregar usuarios.');
-          } else {
-            this.showErrorMessage('Ese email ya está en uso');
-          }
-        }
-      );
+        this.selectedUser = null;
+      } else {
+        // Crear nuevo usuario
+        const createdUser = await firstValueFrom(this.userService.createUser(this.currentUser));
+        this.users.push(createdUser);
+      }
+      this.currentUser = { roles: [] };
+      this.isAddingUser = false;
+    } catch (error: unknown) {
+      console.error('Error al guardar el usuario', error);
+      if ((error as any).status === 403) {
+        this.showErrorMessage(this.selectedUser ? 'No tienes permisos para actualizar el usuario.' : 'No tienes permisos para agregar usuarios.');
+      } else {
+        this.showErrorMessage(this.selectedUser ? 'Debes seleccionar un rol' : 'Ese email ya está en uso');
+      }
     }
   }
 
@@ -131,27 +116,25 @@ export class UsersComponent implements OnInit {
     this.isAddingUser = false;
   }
 
-  deleteUser(userId: string): void {
+  async deleteUser(userId: string): Promise<void> {
     if (confirm('¿Estás seguro de que deseas eliminar este usuario?')) {
-      this.userService.deleteUser(userId).subscribe(
-        () => {
-          this.users = this.users.filter(user => user._id !== userId);
-          this.selectedUser = null;
-          this.currentUser = { roles: [] };
-        },
-        (error) => {
-          this.errorMessage = 'Error al eliminar el usuario';
-        }
-      );
+      try {
+        await firstValueFrom(this.userService.deleteUser(userId));
+        this.users = this.users.filter(user => user._id !== userId);
+        this.selectedUser = null;
+        this.currentUser = { roles: [] };
+      } catch (error: unknown) {
+        console.error('Error al eliminar el usuario', error);
+        this.errorMessage = 'Error al eliminar el usuario';
+      }
     }
   }
+
   private showErrorMessage(message: string): void {
     this.errorMessage = message;
-    // Limpiar el temporizador anterior, si existe
     if (this.errorTimer) {
       clearTimeout(this.errorTimer);
     }
-    // Temporizador para que desaparezca el mensaje de error despues de x tiempo
     this.errorTimer = setTimeout(() => {
       this.errorMessage = null;
     }, 3000);
